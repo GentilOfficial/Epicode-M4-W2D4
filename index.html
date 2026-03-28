@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Online Books Marketplace</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <h1 class="text-center m-4">Books Marketplace</h1>
+    <div class="d-flex m-4 gap-2 justify-content-center align-items-center">
+      <h2 class="h6 m-0">Search</h2>
+      <div class="input-group input-group-sm" style="max-width: 30rem">
+        <input type="text" class="form-control" id="search-input" />
+      </div>
+    </div>
+    <main class="container my-4">
+      <div class="row">
+        <div class="col d-flex gap-3 align-items-center">
+          <h2>Cart</h2>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-danger"
+            onclick="clearCart()"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col d-flex gap-4">
+          <p>Items: <span id="cart-total-items" class="fw-bold">0</span></p>
+          <p>
+            Total: <span id="cart-total-price" class="fw-bold">0.00</span> EUR
+          </p>
+        </div>
+      </div>
+      <div class="row mb-4">
+        <div class="col">
+          <ul class="list-group" id="cart-list-container"></ul>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <h2>Books</h2>
+        </div>
+      </div>
+      <div class="row g-4" id="main-container"></div>
+    </main>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+    <script src="./main.js"></script>
+  </body>
+</html>
