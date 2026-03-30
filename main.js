@@ -96,12 +96,20 @@ const addBookToCart = (title, code, price) => {
   }
 }
 
+const hideBookCard = (cardId) => {
+  const card = document.getElementById(cardId)
+  if (card) card.classList.add("d-none")
+}
+
 const generateBookCard = ({ title, code, img, category, price }) => {
   const inCart = userCart.some((book) => book.code === code)
 
+  const wrapper = document.createElement("div")
+  wrapper.classList.add("col")
+  wrapper.id = `book-${code}`
+
   const card = document.createElement("div")
-  card.classList.add("card")
-  card.id = `book-${code}`
+  card.classList.add("card", "h-100")
 
   if (inCart) {
     card.classList.add("opacity-50")
@@ -127,33 +135,52 @@ const generateBookCard = ({ title, code, img, category, price }) => {
   categoryEl.classList.add("badge", "text-bg-light", "border")
   categoryEl.textContent = category
 
+  const cardFooter = document.createElement("div")
+  cardFooter.classList.add("card-footer")
+
   const priceEl = document.createElement("p")
   priceEl.classList.add("h4")
   priceEl.textContent = `${price} EUR`
 
-  const buttonEl = document.createElement("button")
-  buttonEl.classList.add("btn", "btn-sm", "btn-primary", "shadow-sm")
-  buttonEl.textContent = "Add to cart"
+  const buttonAddToCartEl = document.createElement("button")
+  buttonAddToCartEl.classList.add("btn", "btn-sm", "btn-primary", "shadow-sm")
+  buttonAddToCartEl.textContent = "Add to cart"
 
-  buttonEl.addEventListener("click", () => {
+  buttonAddToCartEl.addEventListener("click", () => {
     addBookToCart(title, code, price)
   })
 
-  cardBody.append(titleEl, codeEl, categoryEl, priceEl, buttonEl)
+  const buttonSkipEl = document.createElement("button")
+  buttonSkipEl.classList.add(
+    "btn",
+    "btn-sm",
+    "btn-outline-secondary",
+    "shadow-sm",
+    "mx-2",
+  )
+  buttonSkipEl.textContent = "Skip"
 
-  card.append(imageEl, cardBody)
+  buttonSkipEl.addEventListener("click", () => {
+    hideBookCard(`book-${code}`)
+  })
 
-  return card
+  cardBody.append(titleEl, codeEl, categoryEl)
+  cardFooter.append(priceEl, buttonAddToCartEl, buttonSkipEl)
+
+  card.append(imageEl, cardBody, cardFooter)
+
+  wrapper.appendChild(card)
+  return wrapper
+}
+
+const clearContainer = (container) => {
+  container.innerHTML = ""
 }
 
 const printBooks = (container, books) => {
-  container.innerHTML = ""
-
+  clearContainer(container)
   books.forEach((book) => {
-    const col = document.createElement("div")
-    col.classList.add("col-12", "col-md-6", "col-lg-3")
-    col.appendChild(generateBookCard(book))
-    container.appendChild(col)
+    container.appendChild(generateBookCard(book))
   })
 }
 
