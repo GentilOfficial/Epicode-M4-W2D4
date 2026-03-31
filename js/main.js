@@ -1,33 +1,19 @@
-const booksApi = "https://striveschool-api.herokuapp.com/books"
-
 const userCart = []
 
 const getBooks = async () => {
   try {
-    const response = await fetch(booksApi)
+    const response = await fetch(api)
     return await response.json()
   } catch (error) {
     console.error(error)
   }
 }
 
-const booksAttributeMap = async (books) => {
-  return books.map(({ title, asin, img, category, price }) => {
-    return {
-      title: title,
-      code: asin,
-      img: img,
-      category: category,
-      price: price,
-    }
-  })
-}
-
-const removeFromCart = (code) => {
-  const index = userCart.findIndex((book) => book.code === code)
+const removeFromCart = (asin) => {
+  const index = userCart.findIndex((book) => book.asin === asin)
   userCart.splice(index, 1)
 
-  const bookCard = document.getElementById(`book-${code}`)
+  const bookCard = document.getElementById(`book-${asin}`)
   if (bookCard) bookCard.classList.remove("opacity-50")
 
   printCart()
@@ -37,11 +23,11 @@ const clearCart = () => {
   const cartCopy = [...userCart]
 
   cartCopy.forEach((book) => {
-    removeFromCart(book.code)
+    removeFromCart(book.asin)
   })
 }
 
-const generateCartListItem = ({ title, code, price }) => {
+const generateCartListItem = ({ title, asin, price }) => {
   const listItem = document.createElement("li")
   listItem.classList.add(
     "list-group-item",
@@ -50,14 +36,14 @@ const generateCartListItem = ({ title, code, price }) => {
     "justify-content-between",
     "gap-2",
   )
-  listItem.innerText = `${title} - ${code} - ${price} EUR`
+  listItem.innerText = `${title} - ${asin} - ${price} EUR`
 
   const removeButton = document.createElement("button")
   removeButton.classList.add("btn", "btn-sm", "btn-danger")
   removeButton.innerText = "Remove"
 
   removeButton.addEventListener("click", () => {
-    removeFromCart(code)
+    removeFromCart(asin)
   })
 
   listItem.append(removeButton)
@@ -79,16 +65,14 @@ const printCart = () => {
   userCart.forEach((book) => container.appendChild(generateCartListItem(book)))
 }
 
-const addBookToCart = (title, code, price) => {
-  const hasBook = userCart.some((book) => book.code === code)
-
-  if (!hasBook) {
-    const bookCard = document.getElementById(`book-${code}`)
+const addBookToCart = (title, asin, price) => {
+  if (!userCart.some((book) => book.asin === asin)) {
+    const bookCard = document.getElementById(`book-${asin}`)
     if (bookCard) bookCard.classList.add("opacity-50")
 
     userCart.push({
       title: title,
-      code: code,
+      asin: asin,
       price: price,
     })
 
@@ -101,19 +85,17 @@ const hideBookCard = (cardId) => {
   if (card) card.classList.add("d-none")
 }
 
-const generateBookCard = ({ title, code, img, category, price }) => {
-  const inCart = userCart.some((book) => book.code === code)
-
+const generateBookCard = ({ title, asin, img, category, price }) => {
   const wrapper = document.createElement("div")
   wrapper.classList.add("col")
-  wrapper.id = `book-${code}`
+  wrapper.id = `book-${asin}`
+
+  if (userCart.some((book) => book.asin === asin)) {
+    wrapper.classList.add("opacity-50")
+  }
 
   const card = document.createElement("div")
   card.classList.add("card", "h-100")
-
-  if (inCart) {
-    card.classList.add("opacity-50")
-  }
 
   const imageEl = document.createElement("img")
   imageEl.src = img
@@ -127,9 +109,9 @@ const generateBookCard = ({ title, code, img, category, price }) => {
   titleEl.classList.add("card-title")
   titleEl.textContent = title
 
-  const codeEl = document.createElement("p")
-  codeEl.classList.add("h6", "text-secondary")
-  codeEl.textContent = code
+  const asinEl = document.createElement("p")
+  asinEl.classList.add("h6", "text-secondary")
+  asinEl.textContent = asin
 
   const categoryEl = document.createElement("p")
   categoryEl.classList.add("badge", "text-bg-light", "border")
@@ -140,14 +122,14 @@ const generateBookCard = ({ title, code, img, category, price }) => {
 
   const priceEl = document.createElement("p")
   priceEl.classList.add("h4")
-  priceEl.textContent = `${price} EUR`
+  priceEl.textContent = `${price.toFixed(2)} EUR`
 
   const buttonAddToCartEl = document.createElement("button")
   buttonAddToCartEl.classList.add("btn", "btn-sm", "btn-primary", "shadow-sm")
   buttonAddToCartEl.textContent = "Add to cart"
 
   buttonAddToCartEl.addEventListener("click", () => {
-    addBookToCart(title, code, price)
+    addBookToCart(title, asin, price)
   })
 
   const buttonSkipEl = document.createElement("button")
@@ -161,11 +143,21 @@ const generateBookCard = ({ title, code, img, category, price }) => {
   buttonSkipEl.textContent = "Skip"
 
   buttonSkipEl.addEventListener("click", () => {
-    hideBookCard(`book-${code}`)
+    hideBookCard(`book-${asin}`)
   })
 
-  cardBody.append(titleEl, codeEl, categoryEl)
-  cardFooter.append(priceEl, buttonAddToCartEl, buttonSkipEl)
+  const buttonDetailsEl = document.createElement("a")
+  buttonDetailsEl.classList.add(
+    "btn",
+    "btn-sm",
+    "btn-outline-secondary",
+    "shadow-sm",
+  )
+  buttonDetailsEl.textContent = "Details"
+  buttonDetailsEl.href = `./details.html?asin=${asin}`
+
+  cardBody.append(titleEl, asinEl, categoryEl)
+  cardFooter.append(priceEl, buttonAddToCartEl, buttonSkipEl, buttonDetailsEl)
 
   card.append(imageEl, cardBody, cardFooter)
 
@@ -173,24 +165,30 @@ const generateBookCard = ({ title, code, img, category, price }) => {
   return wrapper
 }
 
-const clearContainer = (container) => {
-  container.innerHTML = ""
-}
-
 const printBooks = (container, books) => {
   clearContainer(container)
+  showContainer(container)
   books.forEach((book) => {
     container.appendChild(generateBookCard(book))
   })
 }
 
-const searchBooks = async (search, mainContainer) => {
+const searchBooks = (search, output) => {
+  const spinner = document.getElementById("spinner")
   getBooks()
-    .then((books) => booksAttributeMap(books))
     .then((books) =>
       books.filter((book) => book.title.toLowerCase().includes(search)),
     )
-    .then((books) => printBooks(mainContainer, books))
+    .then((books) => {
+      hideSpinner(spinner)
+      printBooks(output, books)
+    })
+}
+
+const checkSearchInput = (searchValue, output) => {
+  if (searchValue.length > 3 || searchValue.length === 0) {
+    searchBooks(searchValue.toLowerCase(), output)
+  }
 }
 
 window.onload = () => {
@@ -200,9 +198,6 @@ window.onload = () => {
   searchBooks("", mainContainer)
 
   searchInput.addEventListener("input", () => {
-    inputLength = searchInput.value.length
-    if (inputLength > 3 || inputLength === 0) {
-      searchBooks(searchInput.value.toLowerCase(), mainContainer)
-    }
+    checkSearchInput(searchInput.value, mainContainer)
   })
 }
